@@ -140,6 +140,8 @@ pub mod dwt;
 #[cfg(feature = "device-selected")]
 pub mod fmc;
 #[cfg(feature = "device-selected")]
+pub mod pin_defs;
+#[cfg(feature = "device-selected")]
 pub mod prelude;
 #[cfg(feature = "device-selected")]
 pub mod pwm;

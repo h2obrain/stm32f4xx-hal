@@ -5,16 +5,6 @@ use crate::time::Hertz;
 use cortex_m::peripheral::{DCB, DWT};
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
-/// Delay in seconds
-pub trait DelayS<FXX> {
-    /// Delay code by s seconds
-    fn delay(&mut self, s: FXX);
-}
-/// Convert into seconds
-pub trait IntoSeconds<Fxx> {
-    fn as_secs(&self) -> Fxx;
-}
-
 pub trait DwtExt {
     fn constrain(self, dcb: DCB, clocks: Clocks) -> Dwt;
 }
@@ -42,44 +32,45 @@ pub struct Dwt {
     clocks: Clocks,
 }
 impl Dwt {
+    pub fn release(self) -> (DWT, DCB) {
+        (self.dwt, self.dcb)
+    }
     pub fn delay(&self) -> Delay {
         Delay {
-            dwt_clock: self.clocks.hclk(),
+            clock: self.clocks.hclk(),
         }
     }
     pub fn stopwatch<'i>(&self, times: &'i mut [u32]) -> StopWatch<'i> {
         StopWatch::new(times, self.clocks.hclk())
     }
-    pub fn measure<F: FnOnce()>(&self, f: F) -> ClockDiff {
+    pub fn measure<F: FnOnce()>(&self, f: F) -> ClockDuration {
         let mut times: [u32; 2] = [0; 2];
         let mut sw = self.stopwatch(&mut times);
         f();
-        sw.lap().last()
-    }
-    pub fn release(self) -> (DWT, DCB) {
-        (self.dwt, self.dcb)
+        sw.lap().lap_time(1).unwrap()
     }
 }
 
 #[derive(Clone, Copy)]
 pub struct Delay {
-    dwt_clock: Hertz,
+    clock: Hertz,
 }
 impl Delay {
-    pub fn delay_cycles(cycles: u64) {
-        Delay::delay_cycles_(DWT::get_cycle_count(), cycles);
+    pub fn delay(duration: ClockDuration) {
+        let cycles = duration.ticks as u64;
+        Delay::delay_(DWT::get_cycle_count(), cycles);
     }
     fn delay_us_(self, us: u64) {
         let start = DWT::get_cycle_count();
-        let cycles = (us * self.dwt_clock.0 as u64) / 1_000_000;
-        Delay::delay_cycles_(start, cycles);
+        let cycles = (us * self.clock.0 as u64) / 1_000_000;
+        Delay::delay_(start, cycles);
     }
     fn delay_ms_(self, ms: u64) {
         let start = DWT::get_cycle_count();
-        let cycles = (ms * self.dwt_clock.0 as u64) / 1_000;
-        Delay::delay_cycles_(start, cycles);
+        let cycles = (ms * self.clock.0 as u64) / 1_000;
+        Delay::delay_(start, cycles);
     }
-    fn delay_cycles_(mut start: u32, cycles: u64) {
+    fn delay_(mut start: u32, cycles: u64) {
         if cycles < (u32::MAX / 2) as u64 {
             let cycles = cycles as u32;
             while (DWT::get_cycle_count().wrapping_sub(start)) < cycles {}
@@ -119,42 +110,31 @@ macro_rules! impl_DelayIntT {
         }
     )*}
 }
-impl_DelayIntT!(for usize,u64,u32,u16,u8,i64,i32,i16,i8);
-
-/// Implement DelayS for float types (Note, that the delay itself will need to calculate a lot)
-macro_rules! impl_DelayFloatT {
-    (for $($t:ty),+) => {$(
-        impl DelayS<$t> for Delay {
-            fn delay(&mut self, s:$t) {
-                let start = DWT::get_cycle_count();
-                let cycles = s * self.dwt_clock.0 as $t;
-                Delay::delay_cycles_(start, cycles as u64);
-            }
-        }
-    )*}
-}
-impl_DelayFloatT!(for f32,f64);
+impl_DelayIntT!(for usize, u64, u32, u16, u8);
 
 /// Very simple stopwatch
-/// Notes:
-/// - Max tdiff is < (1<<32) / HCLK
-/// - Assumes DWT cycle counter is enabled
-/// - Assumes Debug is set up
 pub struct StopWatch<'l> {
     times: &'l mut [u32],
     timei: usize,
-    dwt_clock: Hertz,
+    clock: Hertz,
 }
 impl<'l> StopWatch<'l> {
-    pub fn new(times: &'l mut [u32], dwt_clock: Hertz) -> Self {
+    fn new(times: &'l mut [u32], clock: Hertz) -> Self {
         assert!(times.len() >= 2);
-        let sw = StopWatch {
+        let mut sw = StopWatch {
             times,
             timei: 0,
-            dwt_clock,
+            clock,
         };
-        sw.times[0] = DWT::get_cycle_count();
+        sw.reset();
         sw
+    }
+    pub fn lap_count(&self) -> usize {
+        self.timei
+    }
+    pub fn reset(&mut self) {
+        self.timei = 0;
+        self.times[0] = DWT::get_cycle_count();
     }
     pub fn lap(&mut self) -> &Self {
         let c = DWT::get_cycle_count();
@@ -164,44 +144,41 @@ impl<'l> StopWatch<'l> {
         self.times[self.timei] = c;
         self
     }
-    pub fn lap_time(&self, n: usize) -> ClockDiff {
+    pub fn lap_time(&self, n: usize) -> Option<ClockDuration> {
         if (n < 1) || (self.timei < n) {
-            ClockDiff {
-                diff: 0,
-                dwt_clock: self.dwt_clock,
-            }
+            None
         } else {
-            ClockDiff {
-                diff: self.times[n].wrapping_sub(self.times[n - 1]),
-                dwt_clock: self.dwt_clock,
-            }
+            Some(ClockDuration {
+                ticks: self.times[n].wrapping_sub(self.times[n - 1]),
+                clock: self.clock,
+            })
         }
-    }
-    pub fn last(&self) -> ClockDiff {
-        self.lap_time(self.timei)
     }
 }
 
 /// Clock difference with capability to calculate SI units (s)
-pub struct ClockDiff {
-    diff: u32,
-    dwt_clock: Hertz,
+#[derive(Clone, Copy)]
+pub struct ClockDuration {
+    ticks: u32,
+    clock: Hertz,
 }
-impl ClockDiff {
-    pub fn diff_clock(&self) -> u32 {
-        self.diff
+impl ClockDuration {
+    pub fn as_ticks(self) -> u32 {
+        self.ticks
     }
-    pub fn as_nanos(&self) -> u64 {
-        self.diff as u64 * 1_000_000_000 / self.dwt_clock.0 as u64
+    pub fn as_millis(self) -> u64 {
+        self.ticks as u64 * 1_000 / self.clock.0 as u64
+    }
+    pub fn as_micros(self) -> u64 {
+        self.ticks as u64 * 1_000_000 / self.clock.0 as u64
+    }
+    pub fn as_nanos(self) -> u64 {
+        self.ticks as u64 * 1_000_000_000 / self.clock.0 as u64
+    }
+    pub fn as_secs_f32(self) -> f32 {
+        self.ticks as f32 / self.clock.0 as f32
+    }
+    pub fn as_secs_f64(self) -> f64 {
+        self.ticks as f64 / self.clock.0 as f64
     }
 }
-macro_rules! impl_ClockDiff {
-    (for $($t:ty),+) => {$(
-        impl IntoSeconds<$t> for ClockDiff {
-            fn as_secs(&self) -> $t {
-                self.diff as $t / self.dwt_clock.0 as $t
-            }
-        }
-    )*}
-}
-impl_ClockDiff!(for f32,f64);

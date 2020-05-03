@@ -61,6 +61,17 @@ fn main() -> ! {
                     lap += 1;
                 }
             }
+            // Get all the lap times
+            for lap_time in &sw {
+                let _t = lap_time.as_secs_f64();
+            }
+            // Get all the lap times
+            /*
+            for lap_time in sw {
+                let _t = lap_time.as_secs_f64();
+            }
+            sw = dwt.stopwatch(&mut lap_times);
+            */
 
             // Reset stopwatch
             sw.reset();

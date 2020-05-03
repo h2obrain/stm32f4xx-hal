@@ -44,13 +44,18 @@ fn main() -> ! {
             sw.lap();
             led1.set_low().unwrap();
             led2.set_high().unwrap();
-            delay.delay_ms(900_u32);
+            delay.delay_us(800_000_u32);
+            sw.lap();
             // Also you can measure with almost clock precision
             let cd: ClockDuration = dwt.measure(|| delay.delay_ms(100_u32));
-            let _t: u32 = cd.as_ticks(); // Should return 48MHz * 0.1s as u32
-            let _t: f32 = cd.as_secs_f32(); // Should return ~0.1s as a f32
-            let _t: f64 = cd.as_secs_f64(); // Should return ~0.1s as a f64
-            let _t: u64 = cd.as_nanos(); // Should return 100000000ns as a u64
+            let _t: u64 = cd.as_ticks().unwrap(); // Should return 48MHz * 0.1s as u32
+            let _t: f32 = cd.as_secs_f32().unwrap(); // Should return ~0.1s as a f32
+            let _t: f64 = cd.as_secs_f64().unwrap(); // Should return ~0.1s as a f64
+            let _t: u64 = cd.as_nanos().unwrap(); // Should return 100000000ns as a u64
+            sw.lap();
+
+            // Delay using ClockDuration
+            delay.delay(ClockDuration::from_secs_f64(0.1));
             sw.lap();
 
             // Get all the lap times

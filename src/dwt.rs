@@ -65,8 +65,9 @@ pub struct Delay {
 }
 impl Delay {
     /// Delay for `ClockDuration::ticks`
-    pub fn delay(duration: ClockDuration) {
-        let ticks = duration.ticks as u64;
+    pub fn delay(self, mut duration: ClockDuration) {
+        duration.clock = Some(self.clock);
+        let ticks = duration.as_ticks().unwrap();
         Delay::delay_ticks(DWT::get_cycle_count(), ticks);
     }
     /// Delay ticks
@@ -170,8 +171,8 @@ impl<'l> StopWatch<'l> {
             None
         } else {
             Some(ClockDuration {
-                ticks: self.times[n].wrapping_sub(self.times[n - 1]),
-                clock: self.clock,
+                duration: ClockDurationValue::Ticks(self.times[n].wrapping_sub(self.times[n - 1])),
+                clock: Some(self.clock),
             })
         }
     }
@@ -224,32 +225,114 @@ impl<'l, 'r> Iterator for StopWatchIntoIteratorRef<'l, 'r> {
 /// Clock difference with capability to calculate SI units (s)
 #[derive(Clone, Copy)]
 pub struct ClockDuration {
-    ticks: u32,
-    clock: Hertz,
+    duration: ClockDurationValue,
+    clock: Option<Hertz>,
 }
+#[derive(Clone, Copy)]
+pub enum ClockDurationValue {
+    Ticks(u32),
+    Nanos(u64),
+    SecsF32(f32),
+    SecsF64(f64),
+}
+
 impl ClockDuration {
-    /// Returns ticks
-    pub fn as_ticks(self) -> u32 {
-        self.ticks
+    /// Returns probably calculated ticks as integer
+    pub fn as_ticks(&self) -> Result<u64, &str> {
+        match self.duration {
+            ClockDurationValue::Ticks(ticks) => Ok(ticks as u64),
+            _ => {
+                if let Some(clk) = self.clock {
+                    match self.duration {
+                        ClockDurationValue::Nanos(nanos) => Ok(nanos * clk.0 as u64 / 1_000),
+                        ClockDurationValue::SecsF32(secs) => Ok((secs * clk.0 as f32) as u64),
+                        ClockDurationValue::SecsF64(secs) => Ok((secs * clk.0 as f64) as u64),
+                        _ => Err("Unreachable"),
+                    }
+                } else {
+                    Err("Unable to convert ticks to seconds")
+                }
+            }
+        }
     }
-    /// Returns calculated milliseconds as integer
-    pub fn as_millis(self) -> u64 {
-        self.ticks as u64 * 1_000 / self.clock.0 as u64
+    /// Returns probably calculated nanoseconds as integer
+    pub fn as_nanos(&self) -> Result<u64, &str> {
+        match self.duration {
+            ClockDurationValue::Nanos(nanos) => Ok(nanos),
+            ClockDurationValue::SecsF32(secs) => Ok((secs * 1_000_000_000f32) as u64),
+            ClockDurationValue::SecsF64(secs) => Ok((secs * 1_000_000_000f64) as u64),
+            _ => {
+                if let Some(clk) = self.clock {
+                    match self.duration {
+                        ClockDurationValue::Ticks(ticks) => {
+                            Ok(ticks as u64 * 1_000_000_000 / clk.0 as u64)
+                        }
+                        _ => Err("Unreachable"),
+                    }
+                } else {
+                    Err("Unable to convert ticks to seconds")
+                }
+            }
+        }
     }
-    /// Returns calculated microseconds as integer
-    pub fn as_micros(self) -> u64 {
-        self.ticks as u64 * 1_000_000 / self.clock.0 as u64
+    /// Returns probably calculated seconds as float
+    pub fn as_secs_f32(&self) -> Result<f32, &str> {
+        match self.duration {
+            ClockDurationValue::Nanos(nanos) => Ok(nanos as f32 / 1_000_000_000f32),
+            ClockDurationValue::SecsF32(secs) => Ok(secs),
+            ClockDurationValue::SecsF64(secs) => Ok(secs as f32),
+            _ => {
+                if let Some(clk) = self.clock {
+                    match self.duration {
+                        ClockDurationValue::Ticks(ticks) => Ok(ticks as f32 / clk.0 as f32),
+                        _ => Err("Unreachable"),
+                    }
+                } else {
+                    Err("Unable to convert ticks to seconds")
+                }
+            }
+        }
     }
-    /// Returns calculated nanoseconds as integer
-    pub fn as_nanos(self) -> u64 {
-        self.ticks as u64 * 1_000_000_000 / self.clock.0 as u64
+    /// Returns probably calculated seconds as float
+    pub fn as_secs_f64(&self) -> Result<f64, &str> {
+        match self.duration {
+            ClockDurationValue::Nanos(nanos) => Ok(nanos as f64 / 1_000_000_000f64),
+            ClockDurationValue::SecsF32(secs) => Ok(secs as f64),
+            ClockDurationValue::SecsF64(secs) => Ok(secs),
+            _ => {
+                if let Some(clk) = self.clock {
+                    match self.duration {
+                        ClockDurationValue::Ticks(ticks) => Ok(ticks as f64 / clk.0 as f64),
+                        _ => Err("Unreachable"),
+                    }
+                } else {
+                    Err("Unable to convert ticks to seconds")
+                }
+            }
+        }
     }
-    /// Return calculated seconds as 32-bit float
-    pub fn as_secs_f32(self) -> f32 {
-        self.ticks as f32 / self.clock.0 as f32
+    pub fn from_ticks(ticks: u32) -> Self {
+        ClockDuration {
+            duration: ClockDurationValue::Ticks(ticks),
+            clock: None,
+        }
     }
-    /// Return calculated seconds as 64-bit float
-    pub fn as_secs_f64(self) -> f64 {
-        self.ticks as f64 / self.clock.0 as f64
+    pub fn from_nanos(nanos: u64) -> Self {
+        ClockDuration {
+            duration: ClockDurationValue::Nanos(nanos as u64),
+            clock: None,
+        }
+    }
+    pub fn from_secs_f32(secs: f32) -> Self {
+        ClockDuration {
+            duration: ClockDurationValue::SecsF32(secs),
+            clock: None,
+        }
+    }
+    pub fn from_secs_f64(secs: f64) -> Self {
+        ClockDuration {
+            duration: ClockDurationValue::SecsF64(secs),
+            clock: None,
+        }
     }
 }

@@ -177,6 +177,50 @@ impl<'l> StopWatch<'l> {
     }
 }
 
+pub struct StopWatchIntoIterator<'l> {
+    stopwatch: StopWatch<'l>,
+    lap: usize,
+}
+impl<'l> IntoIterator for StopWatch<'l> {
+    type Item = ClockDuration;
+    type IntoIter = StopWatchIntoIterator<'l>;
+    fn into_iter(self) -> Self::IntoIter {
+        StopWatchIntoIterator {
+            stopwatch: self,
+            lap: 0,
+        }
+    }
+}
+impl<'l> Iterator for StopWatchIntoIterator<'l> {
+    type Item = ClockDuration;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.lap += 1;
+        self.stopwatch.lap_time(self.lap)
+    }
+}
+
+pub struct StopWatchIntoIteratorRef<'l, 'r> {
+    stopwatch: &'r StopWatch<'l>,
+    lap: usize,
+}
+impl<'l, 'r> IntoIterator for &'r StopWatch<'l> {
+    type Item = ClockDuration;
+    type IntoIter = StopWatchIntoIteratorRef<'l, 'r>;
+    fn into_iter(self) -> Self::IntoIter {
+        StopWatchIntoIteratorRef {
+            stopwatch: &self,
+            lap: 0,
+        }
+    }
+}
+impl<'l, 'r> Iterator for StopWatchIntoIteratorRef<'l, 'r> {
+    type Item = ClockDuration;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.lap += 1;
+        self.stopwatch.lap_time(self.lap)
+    }
+}
+
 /// Clock difference with capability to calculate SI units (s)
 #[derive(Clone, Copy)]
 pub struct ClockDuration {

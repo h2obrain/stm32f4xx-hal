@@ -57,60 +57,64 @@ pub struct Delay {
 }
 impl Delay {
     pub fn delay(duration: ClockDuration) {
-        let cycles = duration.ticks as u64;
-        Delay::delay_(DWT::get_cycle_count(), cycles);
+        let ticks = duration.ticks as u64;
+        Delay::delay_ticks(DWT::get_cycle_count(), ticks);
     }
-    fn delay_us_(self, us: u64) {
-        let start = DWT::get_cycle_count();
-        let cycles = (us * self.clock.0 as u64) / 1_000_000;
-        Delay::delay_(start, cycles);
-    }
-    fn delay_ms_(self, ms: u64) {
-        let start = DWT::get_cycle_count();
-        let cycles = (ms * self.clock.0 as u64) / 1_000;
-        Delay::delay_(start, cycles);
-    }
-    fn delay_(mut start: u32, cycles: u64) {
-        if cycles < (u32::MAX / 2) as u64 {
-            let cycles = cycles as u32;
-            while (DWT::get_cycle_count().wrapping_sub(start)) < cycles {}
-        } else if cycles <= u32::MAX as u64 {
-            let mut cycles = cycles as u32;
-            cycles -= u32::MAX / 2;
+    fn delay_ticks(mut start: u32, ticks: u64) {
+        if ticks < (u32::MAX / 2) as u64 {
+            let ticks = ticks as u32;
+            while (DWT::get_cycle_count().wrapping_sub(start)) < ticks {}
+        } else if ticks <= u32::MAX as u64 {
+            let mut ticks = ticks as u32;
+            ticks -= u32::MAX / 2;
             while (DWT::get_cycle_count().wrapping_sub(start)) < u32::MAX / 2 {}
             start -= u32::MAX / 2;
-            while (DWT::get_cycle_count().wrapping_sub(start)) < cycles {}
+            while (DWT::get_cycle_count().wrapping_sub(start)) < ticks {}
         } else {
-            let mut rest = (cycles >> 32) as u32;
-            let cycles = (cycles & u32::MAX as u64) as u32;
+            let mut rest = (ticks >> 32) as u32;
+            let ticks = (ticks & u32::MAX as u64) as u32;
             loop {
-                while (DWT::get_cycle_count().wrapping_sub(start)) < cycles {}
+                while (DWT::get_cycle_count().wrapping_sub(start)) < ticks {}
                 if rest == 0 {
                     break;
                 }
                 rest -= 1;
-                while (DWT::get_cycle_count().wrapping_sub(start)) > cycles {}
+                while (DWT::get_cycle_count().wrapping_sub(start)) > ticks {}
             }
         }
     }
 }
 
 // Implement DelayUs/DelayMs for various integer types
+impl DelayUs<u64> for Delay {
+    fn delay_us(&mut self, us: u64) {
+        let start = DWT::get_cycle_count();
+        let ticks = (us * self.clock.0 as u64) / 1_000_000;
+        Delay::delay_ticks(start, ticks);
+    }
+}
+impl DelayMs<u64> for Delay {
+    fn delay_ms(&mut self, ms: u64) {
+        let start = DWT::get_cycle_count();
+        let ticks = (ms * self.clock.0 as u64) / 1_000;
+        Delay::delay_ticks(start, ticks);
+    }
+}
 macro_rules! impl_DelayIntT {
     (for $($t:ty),+) => {$(
         impl DelayUs<$t> for Delay {
             fn delay_us(&mut self, us: $t) {
-                self.delay_us_(us as u64);
+                self.delay_us(us as u64);
             }
         }
         impl DelayMs<$t> for Delay {
             fn delay_ms(&mut self, ms: $t) {
-                self.delay_ms_(ms as u64);
+                self.delay_ms(ms as u64);
             }
         }
     )*}
 }
-impl_DelayIntT!(for usize, u64, u32, u16, u8);
+impl_DelayIntT!(for usize,  u32, u16, u8);
 
 /// Very simple stopwatch
 pub struct StopWatch<'l> {

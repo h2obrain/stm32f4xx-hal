@@ -99,37 +99,22 @@ impl Delay {
 }
 
 // Implement DelayUs/DelayMs for various integer types
-impl DelayUs<u64> for Delay {
-    fn delay_us(&mut self, us: u64) {
+impl<T: Into<u64>> DelayUs<T> for Delay {
+    fn delay_us(&mut self, us: T) {
         // Convert us to ticks
         let start = DWT::get_cycle_count();
-        let ticks = (us * self.clock.0 as u64) / 1_000_000;
+        let ticks = (us.into() * self.clock.0 as u64) / 1_000_000;
         Delay::delay_ticks(start, ticks);
     }
 }
-impl DelayMs<u64> for Delay {
-    fn delay_ms(&mut self, ms: u64) {
+impl<T: Into<u64>> DelayMs<T> for Delay {
+    fn delay_ms(&mut self, ms: T) {
         // Convert ms to ticks
         let start = DWT::get_cycle_count();
-        let ticks = (ms * self.clock.0 as u64) / 1_000;
+        let ticks = (ms.into() * self.clock.0 as u64) / 1_000;
         Delay::delay_ticks(start, ticks);
     }
 }
-macro_rules! impl_DelayIntT {
-    (for $($t:ty),+) => {$(
-        impl DelayUs<$t> for Delay {
-            fn delay_us(&mut self, us: $t) {
-                self.delay_us(us as u64);
-            }
-        }
-        impl DelayMs<$t> for Delay {
-            fn delay_ms(&mut self, ms: $t) {
-                self.delay_ms(ms as u64);
-            }
-        }
-    )*}
-}
-impl_DelayIntT!(for usize,  u32, u16, u8);
 
 /// Very simple stopwatch
 pub struct StopWatch<'l> {

@@ -11,13 +11,8 @@ pub trait DwtExt {
 impl DwtExt for DWT {
     /// Enable trace unit and cycle counter
     fn constrain(mut self, mut dcb: DCB, clocks: Clocks) -> Dwt {
-        cortex_m::interrupt::free(|_| {
-            // Enable fmc clock
-            dcb.enable_trace();
-
-            self.enable_cycle_counter();
-        });
-
+        dcb.enable_trace();
+        self.enable_cycle_counter();
         Dwt {
             dwt: self,
             dcb,
@@ -33,8 +28,9 @@ pub struct Dwt {
 }
 impl Dwt {
     /// Release the dwt and dcb control
-    /// NOTE all instances of Delay and StopWatch become invalid after this
-    pub fn release(self) -> (DWT, DCB) {
+    /// # Safety
+    /// All instances of Delay and StopWatch become invalid after this
+    pub unsafe fn release(self) -> (DWT, DCB) {
         (self.dwt, self.dcb)
     }
     /// Create a delay instance

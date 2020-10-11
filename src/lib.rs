@@ -99,6 +99,18 @@ pub mod gpio;
 #[cfg(feature = "device-selected")]
 pub mod i2c;
 #[cfg(all(
+    feature = "device-selected",
+    any(
+        feature = "stm32f427",
+        feature = "stm32f429",
+        feature = "stm32f437",
+        feature = "stm32f439",
+        feature = "stm32f469",
+        feature = "stm32f479"
+    )
+))]
+pub mod ltdc;
+#[cfg(all(
     feature = "usb_fs",
     any(
         feature = "stm32f401",

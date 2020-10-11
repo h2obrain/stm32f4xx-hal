@@ -1,6 +1,5 @@
 #![allow(unsafe_code)]
 #![feature(alloc_error_handler)]
-
 #![no_main]
 #![no_std]
 
@@ -13,15 +12,13 @@ use cortex_m_rt::entry;
 use stm32f4xx_hal as hal;
 
 use crate::hal::{
-    prelude::*,
-    stm32,
-    gpio,
     fmc::{
-        FmcSdramExt,
-        FmcSdramTiming, FmcSdramTimingNs,
-        FmcSdramConfig, FmcSdramBank,
+        FmcSdramBank, FmcSdramConfig, FmcSdramExt, FmcSdramTiming, FmcSdramTimingNs,
         SDRAM2_BASE_ADDRESS,
     },
+    gpio,
+    prelude::*,
+    stm32,
 };
 
 extern crate alloc;
@@ -34,8 +31,6 @@ static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 fn alloc_error(_: core::alloc::Layout) -> ! {
     panic!("Out of memory! :(");
 }
-
-
 
 #[entry]
 fn main() -> ! {
@@ -51,7 +46,7 @@ fn main() -> ! {
         // Set up the system clock. We want to run at 168MHz for this one.
         let rcc = dp.RCC.constrain();
         let clocks = rcc.cfgr.sysclk(168.mhz()).freeze();
-        
+
         // Create a delay abstraction based on SysTick
         let mut delay = hal::delay::Delay::new(cp.SYST, clocks);
 
@@ -62,52 +57,161 @@ fn main() -> ! {
         let gpioe = dp.GPIOE.split();
         let gpiof = dp.GPIOF.split();
         let sdram_pins = (
-            gpiog.pg8.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Sdclk
+            gpiog
+                .pg8
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Sdclk
             // sdcke0, sdne0 not needed
-            gpiob.pb5.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Sdcke1
-            gpiob.pb6.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Sdne1
-            
-            gpiog.pg4.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Ba0
-            gpiog.pg5.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Ba1
-            
-            gpiof.pf11.into_alternate_af12().set_speed(gpio::Speed::Medium), // Sdnras
-            gpiog.pg15.into_alternate_af12().set_speed(gpio::Speed::Medium), // Sdncas
-            gpioc.pc0.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Sdnwe
-            
-            gpioe.pe0.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Nbl0
-            gpioe.pe1.into_alternate_af12().set_speed(gpio::Speed::Medium),  // Nbl1
-            
+            gpiob
+                .pb5
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Sdcke1
+            gpiob
+                .pb6
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Sdne1
+            gpiog
+                .pg4
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Ba0
+            gpiog
+                .pg5
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Ba1
+            gpiof
+                .pf11
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Sdnras
+            gpiog
+                .pg15
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Sdncas
+            gpioc
+                .pc0
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Sdnwe
+            gpioe
+                .pe0
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Nbl0
+            gpioe
+                .pe1
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium), // Nbl1
             // A0-12
-            gpiof.pf0.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf1.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf2.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf3.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf4.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf5.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf12.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf13.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf14.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiof.pf15.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiog.pg0.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiog.pg1.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            
+            gpiof
+                .pf0
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf1
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf2
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf3
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf4
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf5
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf12
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf13
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf14
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiof
+                .pf15
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiog
+                .pg0
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiog
+                .pg1
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
             // D0-15
-            gpiod.pd14.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiod.pd15.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiod.pd0.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiod.pd1.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe7.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe8.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe9.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe10.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe11.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe12.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe13.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe14.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpioe.pe15.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiod.pd8.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiod.pd9.into_alternate_af12().set_speed(gpio::Speed::Medium),
-            gpiod.pd10.into_alternate_af12().set_speed(gpio::Speed::Medium),
+            gpiod
+                .pd14
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiod
+                .pd15
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiod
+                .pd0
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiod
+                .pd1
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe7
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe8
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe9
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe10
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe11
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe12
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe13
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe14
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpioe
+                .pe15
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiod
+                .pd8
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiod
+                .pd9
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
+            gpiod
+                .pd10
+                .into_alternate_af12()
+                .set_speed(gpio::Speed::Medium),
         );
         let config = FmcSdramConfig {
             bank: FmcSdramBank::BANK2,
@@ -118,9 +222,9 @@ fn main() -> ! {
             ..Default::default()
         };
         let trcd = 18;
-        let trp  = 18;
+        let trp = 18;
         let tras = 42; // 50
-        let trc  = 60; // 80
+        let trc = 60; // 80
         let trfc = 60; // 80
         let trdl = 12;
         let txsr = trfc;
@@ -130,45 +234,45 @@ fn main() -> ! {
             &config,
             FmcSdramTimingNs {
                 rcd: trcd,
-                rp:  trp,
-                wr:  *[trdl, tras - trcd, trc - trcd - trp].iter().enumerate().max().unwrap().1,
-                rc:  trc,
+                rp: trp,
+                wr: *[trdl, tras - trcd, trc - trcd - trp]
+                    .iter()
+                    .enumerate()
+                    .max()
+                    .unwrap()
+                    .1,
+                rc: trc,
                 ras: tras,
                 xsr: txsr,
                 mrd: tmrd,
-                
+
                 // 64ms refresh rate
-                refresh: 64_000_000
-            }
+                refresh: 64_000_000,
+            },
         );
-        let _sdram = dp.FMC.setup_sdram(
-            sdram_pins,
-            &mut delay,
-            config,
-            timing
-        );
-        
+        let _sdram = dp.FMC.setup_sdram(sdram_pins, &mut delay, config, timing);
+
         // Setup the heap allocator
         unsafe { ALLOCATOR.init(SDRAM2_BASE_ADDRESS, 8 * 1024 * 1024) }
-        
+
         // Allocate new vector
         let mut my_vec: Vec<u32> = Vec::new();
         let mut my_val = 0u32;
-        
+
         loop {
             // Green LED
             led1.set_high().unwrap();
             led2.set_low().unwrap();
-            
+
             // Fill sdram with c
-            for c in my_val..my_val+1_000_000 {
+            for c in my_val..my_val + 1_000_000 {
                 my_vec.push(c);
             }
-            
+
             // Red LED
             led1.set_low().unwrap();
             led2.set_high().unwrap();
-            
+
             // Check ram
             for &c in &my_vec {
                 assert!(c == my_val, "Sdram is faulty");

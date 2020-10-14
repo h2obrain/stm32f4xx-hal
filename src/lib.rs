@@ -168,6 +168,7 @@ pub use stm32 as pac;
 pub mod dma;
 #[cfg(feature = "device-selected")]
 pub mod dwt;
+// TODO add feature-selector here!
 #[cfg(feature = "device-selected")]
 pub mod fmc;
 #[cfg(feature = "device-selected")]

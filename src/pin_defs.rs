@@ -99,19 +99,19 @@ gpio_uses! {
     gpiob => {PB5, PB6, PB7},
     gpioc => {PC0, PC2, PC3},
     gpiod => {
-        PD0, PD1, PD3, PD4, PD5, PD6, PD7, PD8, PD9, PD10, 
+        PD0, PD1, PD3, PD4, PD5, PD6, PD7, PD8, PD9, PD10,
         PD11, PD12, PD13, PD14, PD15
     },
     gpioe => {
-        PE0, PE1, PE2, PE3, PE4, PE5, PE6, PE7, PE8, PE9, 
+        PE0, PE1, PE2, PE3, PE4, PE5, PE6, PE7, PE8, PE9,
         PE10, PE11, PE12, PE13, PE14, PE15
     },
     gpiof => {
-        PF0, PF1, PF2, PF3, PF4, PF5, PF11, PF12, PF13, 
+        PF0, PF1, PF2, PF3, PF4, PF5, PF11, PF12, PF13,
         PF14, PF15
     },
     gpiog => {
-        PG0, PG1, PG2, PG3, PG4, PG5, PG7, PG8, PG9, PG10, 
+        PG0, PG1, PG2, PG3, PG4, PG5, PG7, PG8, PG9, PG10,
         PG12, PG13, PG14, PG15
     }
 }
@@ -131,41 +131,32 @@ gpio_uses! {
     gpiof => {PF10},
     gpiog => {PG6, PG11},
     gpioh => {
-        PH2, PH3, PH5, PH6, PH7, PH8, PH9, PH10, PH11, 
+        PH2, PH3, PH5, PH6, PH7, PH8, PH9, PH10, PH11,
         PH12, PH13, PH14, PH15
     },
     gpioi => {
-        PI0, PI1, PI2, PI3, PI4, PI5, PI6, PI7, PI9, PI10, 
+        PI0, PI1, PI2, PI3, PI4, PI5, PI6, PI7, PI9, PI10,
         PI12, PI13, PI14, PI15
     },
     gpioj => {
-        PJ0, PJ1, PJ2, PJ3, PJ4, PJ5, PJ12, PJ13, PJ14, 
+        PJ0, PJ1, PJ2, PJ3, PJ4, PJ5, PJ12, PJ13, PJ14,
         PJ15
     },
     gpiok => {PK3, PK4, PK5, PK6, PK7}
 }
 
-#[cfg(any(
-    feature = "stm32f446",
-    feature = "stm32f469",
-    feature = "stm32f479"
-))]
+#[cfg(any(feature = "stm32f446", feature = "stm32f469", feature = "stm32f479"))]
 gpio_uses! {
     gpioa => {PA7},
     gpioc => {PC4, PC5}
 }
 
-#[cfg(any(
-    feature = "stm32f469",
-    feature = "stm32f479"
-))]
+#[cfg(any(feature = "stm32f469", feature = "stm32f479"))]
 gpio_uses! {
     gpioa => {PA1, PA2, PA5},
     gpioh => {PH4},
     gpioi => {PI11}
 }
-
-
 
 // Traits
 
@@ -188,7 +179,7 @@ macro_rules! io_traits {
 ))]
 io_traits! {
     Dev => {
-        PinCd, PinInt2, PinIntr, PinNce2, PinNce41, 
+        PinCd, PinInt2, PinIntr, PinNce2, PinNce41,
         PinNce42, PinNiord, PinNiowr, PinNreg
     }
 }
@@ -215,19 +206,19 @@ io_traits! {
 ))]
 io_traits! {
     Dev => {
-        PinA0, PinA1, PinA2, PinA3, PinA4, PinA5, PinA6, 
-        PinA7, PinA8, PinA9, PinA10, PinA11, PinA12, 
-        PinA13, PinA14, PinA15, PinA16, PinA17, PinA18, 
-        PinA19, PinA20, PinA21, PinA22, PinA23, PinA24, 
-        PinA25, PinBa0, PinBa1, PinClk, PinD0, PinD1, 
-        PinD2, PinD3, PinD4, PinD5, PinD6, PinD7, PinD8, 
-        PinD9, PinD10, PinD11, PinD12, PinD13, PinD14, 
-        PinD15, PinDa0, PinDa1, PinDa2, PinDa3, PinDa4, 
-        PinDa5, PinDa6, PinDa7, PinDa8, PinDa9, PinDa10, 
-        PinDa11, PinDa12, PinDa13, PinDa14, PinDa15, 
-        PinNbl0, PinNbl1, PinNe1, PinNe2, PinNe3, PinNe4, 
-        PinNl, PinNoe, PinNwait, PinNwe, PinSdcke0, 
-        PinSdcke1, PinSdclk, PinSdncas, PinSdne0, 
+        PinA0, PinA1, PinA2, PinA3, PinA4, PinA5, PinA6,
+        PinA7, PinA8, PinA9, PinA10, PinA11, PinA12,
+        PinA13, PinA14, PinA15, PinA16, PinA17, PinA18,
+        PinA19, PinA20, PinA21, PinA22, PinA23, PinA24,
+        PinA25, PinBa0, PinBa1, PinClk, PinD0, PinD1,
+        PinD2, PinD3, PinD4, PinD5, PinD6, PinD7, PinD8,
+        PinD9, PinD10, PinD11, PinD12, PinD13, PinD14,
+        PinD15, PinDa0, PinDa1, PinDa2, PinDa3, PinDa4,
+        PinDa5, PinDa6, PinDa7, PinDa8, PinDa9, PinDa10,
+        PinDa11, PinDa12, PinDa13, PinDa14, PinDa15,
+        PinNbl0, PinNbl1, PinNe1, PinNe2, PinNe3, PinNe4,
+        PinNl, PinNoe, PinNwait, PinNwe, PinSdcke0,
+        PinSdcke1, PinSdclk, PinSdncas, PinSdne0,
         PinSdne1, PinSdnras, PinSdnwe
     }
 }
@@ -242,26 +233,21 @@ io_traits! {
 ))]
 io_traits! {
     Dev => {
-        PinAle, PinB0, PinB1, PinB2, PinB3, PinB4, PinB5, 
-        PinB6, PinB7, PinCle, PinD16, PinD17, PinD18, 
-        PinD19, PinD20, PinD21, PinD22, PinD23, PinD24, 
-        PinD25, PinD26, PinD27, PinD28, PinD29, PinD30, 
-        PinD31, PinDe, PinG0, PinG1, PinG2, PinG3, PinG4, 
-        PinG5, PinG6, PinG7, PinHsync, PinNbl2, PinNbl3, 
-        PinR0, PinR1, PinR2, PinR3, PinR4, PinR5, PinR6, 
+        PinAle, PinB0, PinB1, PinB2, PinB3, PinB4, PinB5,
+        PinB6, PinB7, PinCle, PinD16, PinD17, PinD18,
+        PinD19, PinD20, PinD21, PinD22, PinD23, PinD24,
+        PinD25, PinD26, PinD27, PinD28, PinD29, PinD30,
+        PinD31, PinDe, PinG0, PinG1, PinG2, PinG3, PinG4,
+        PinG5, PinG6, PinG7, PinHsync, PinNbl2, PinNbl3,
+        PinR0, PinR1, PinR2, PinR3, PinR4, PinR5, PinR6,
         PinR7, PinVsync
     }
 }
 
-#[cfg(any(
-    feature = "stm32f469",
-    feature = "stm32f479"
-))]
+#[cfg(any(feature = "stm32f469", feature = "stm32f479"))]
 io_traits! {
     Dev => {PinInt, PinNce}
 }
-
-
 
 // Implementations
 
@@ -276,7 +262,6 @@ macro_rules! pins {
         )+
     }
 }
-
 
 #[cfg(any(
     feature = "stm32f427",
@@ -516,21 +501,14 @@ pins! {
     PK7  => {AF14: PinDe<LTDC>}
 }
 
-#[cfg(any(
-    feature = "stm32f446",
-    feature = "stm32f469",
-    feature = "stm32f479"
-))]
+#[cfg(any(feature = "stm32f446", feature = "stm32f469", feature = "stm32f479"))]
 pins! {
     PA7  => {AF12: PinSdnwe<FMC>},
     PC4  => {AF12: PinSdne0<FMC>},
     PC5  => {AF12: PinSdcke0<FMC>}
 }
 
-#[cfg(any(
-    feature = "stm32f469",
-    feature = "stm32f479"
-))]
+#[cfg(any(feature = "stm32f469", feature = "stm32f479"))]
 pins! {
     PA1  => {AF14: PinR2<LTDC>},
     PA2  => {AF14: PinR1<LTDC>},

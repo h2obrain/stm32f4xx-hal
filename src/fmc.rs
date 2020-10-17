@@ -5,7 +5,6 @@ use cortex_m::asm;
 use embedded_hal::blocking::delay::DelayUs;
 use stm32f4::ResetValue;
 
-use crate::pin_defs::*;
 use crate::rcc::Clocks;
 use crate::stm32;
 use crate::stm32::fmc::sdcmr::MODE_AW;
@@ -200,7 +199,7 @@ impl FmcSdramTiming {
 
 pub trait FmcSdramExt<PINS> {
     fn setup_sdram(
-        self: &Self,
+        &self,
         pins: PINS,
         delay: &mut dyn DelayUs<u32>,
         config: FmcSdramConfig,
@@ -211,7 +210,7 @@ pub trait FmcSdramExt<PINS> {
 }
 impl<PINS> FmcSdramExt<PINS> for FMC {
     fn setup_sdram(
-        &self, //: &Self,
+        &self,
         pins: PINS,
         delay: &mut dyn DelayUs<u32>,
         config: FmcSdramConfig,
@@ -476,157 +475,160 @@ impl<PINS> FmcSdram</*FMC,*/ PINS> {
 pub trait Pins<Fmc> {}
 
 /// 8/16/32bit SDRam Bank0/1
-impl<
-        Fmc,
-        SDCLK,
-        //    SDCKE0, SDNE0,
-        SDCKE1,
-        SDNE1,
-        BA1,
-        BA0,
-        SDNRAS,
-        SDNCAS,
-        SDNWE,
-        NBL0,
-        NBL1,
-        //    NBL2,NBL3,
-        A0,
-        A1,
-        A2,
-        A3,
-        A4,
-        A5,
-        A6,
-        A7,
-        A8,
-        A9,
-        A10,
-        A11, //A12,
-        D0,
-        D1,
-        D2,
-        D3,
-        D4,
-        D5,
-        D6,
-        D7,
-        D8,
-        D9,
-        D10,
-        D11,
-        D12,
-        D13,
-        D14,
-        D15,
-        //    D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31
-    > Pins<Fmc>
-    for (
-        SDCLK,
-        //    SDCKE0, SDNE0,
-        SDCKE1,
-        SDNE1,
-        BA0,
-        BA1,
-        SDNRAS,
-        SDNCAS,
-        SDNWE,
-        NBL0,
-        NBL1,
-        //    NBL2,NBL3,
-        A0,
-        A1,
-        A2,
-        A3,
-        A4,
-        A5,
-        A6,
-        A7,
-        A8,
-        A9,
-        A10,
-        A11, //A12,
-        D0,
-        D1,
-        D2,
-        D3,
-        D4,
-        D5,
-        D6,
-        D7,
-        D8,
-        D9,
-        D10,
-        D11,
-        D12,
-        D13,
-        D14,
-        D15,
-        //    D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31
-    )
-where
-    SDCLK: PinSdclk<Fmc>,
-    //    SDCKE0: PinSdcke0<Fmc>, // bank0 clock enable
-    //    SDNE0: PinSdne0<Fmc>, // bank0 not enable
-    SDCKE1: PinSdcke1<Fmc>, // bank1 clock enable
-    SDNE1: PinSdne1<Fmc>,   // bank1 not enable
+mod pindef_16bit_bank1_xxx {
+    use crate::{fmc::Pins, pin_defs::*};
+    impl<
+            Fmc,
+            SDCLK,
+            //    SDCKE0, SDNE0,
+            SDCKE1,
+            SDNE1,
+            BA1,
+            BA0,
+            SDNRAS,
+            SDNCAS,
+            SDNWE,
+            NBL0,
+            NBL1,
+            //    NBL2,NBL3,
+            A0,
+            A1,
+            A2,
+            A3,
+            A4,
+            A5,
+            A6,
+            A7,
+            A8,
+            A9,
+            A10,
+            A11, //A12,
+            D0,
+            D1,
+            D2,
+            D3,
+            D4,
+            D5,
+            D6,
+            D7,
+            D8,
+            D9,
+            D10,
+            D11,
+            D12,
+            D13,
+            D14,
+            D15,
+            //    D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31
+        > Pins<Fmc>
+        for (
+            SDCLK,
+            //    SDCKE0, SDNE0,
+            SDCKE1,
+            SDNE1,
+            BA0,
+            BA1,
+            SDNRAS,
+            SDNCAS,
+            SDNWE,
+            NBL0,
+            NBL1,
+            //    NBL2,NBL3,
+            A0,
+            A1,
+            A2,
+            A3,
+            A4,
+            A5,
+            A6,
+            A7,
+            A8,
+            A9,
+            A10,
+            A11, //A12,
+            D0,
+            D1,
+            D2,
+            D3,
+            D4,
+            D5,
+            D6,
+            D7,
+            D8,
+            D9,
+            D10,
+            D11,
+            D12,
+            D13,
+            D14,
+            D15,
+            //    D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31
+        )
+    where
+        SDCLK: PinSdclk<Fmc>,
+        //    SDCKE0: PinSdcke0<Fmc>, // bank0 clock enable
+        //    SDNE0: PinSdne0<Fmc>, // bank0 not enable
+        SDCKE1: PinSdcke1<Fmc>, // bank1 clock enable
+        SDNE1: PinSdne1<Fmc>,   // bank1 not enable
 
-    BA0: PinBa0<Fmc>,
-    BA1: PinBa1<Fmc>,
+        BA0: PinBa0<Fmc>,
+        BA1: PinBa1<Fmc>,
 
-    SDNRAS: PinSdnras<Fmc>,
-    SDNCAS: PinSdncas<Fmc>,
-    SDNWE: PinSdnwe<Fmc>,
+        SDNRAS: PinSdnras<Fmc>,
+        SDNCAS: PinSdncas<Fmc>,
+        SDNWE: PinSdnwe<Fmc>,
 
-    NBL0: PinNbl0<Fmc>,
-    NBL1: PinNbl1<Fmc>,
-    //    NBL2: PinNbl2<Fmc>, // optional, not needed?
-    //    NBL3: PinNbl3<Fmc>, // optional, not needed?
-    A0: PinA0<Fmc>,
-    A1: PinA1<Fmc>,
-    A2: PinA2<Fmc>,
-    A3: PinA3<Fmc>,
-    A4: PinA4<Fmc>,
-    A5: PinA5<Fmc>,
-    A6: PinA6<Fmc>,
-    A7: PinA7<Fmc>,
-    A8: PinA8<Fmc>,
-    A9: PinA9<Fmc>,
-    A10: PinA10<Fmc>,
-    A11: PinA11<Fmc>, // only for 12/13 address bits
-    //    A12: PinA12<Fmc>, // only for 13 address bits
-    D0: PinD0<Fmc>,
-    D1: PinD1<Fmc>,
-    D2: PinD2<Fmc>,
-    D3: PinD3<Fmc>,
-    D4: PinD4<Fmc>,
-    D5: PinD5<Fmc>,
-    D6: PinD6<Fmc>,
-    D7: PinD7<Fmc>,
+        NBL0: PinNbl0<Fmc>,
+        NBL1: PinNbl1<Fmc>,
+        //    NBL2: PinNbl2<Fmc>, // optional, not needed?
+        //    NBL3: PinNbl3<Fmc>, // optional, not needed?
+        A0: PinA0<Fmc>,
+        A1: PinA1<Fmc>,
+        A2: PinA2<Fmc>,
+        A3: PinA3<Fmc>,
+        A4: PinA4<Fmc>,
+        A5: PinA5<Fmc>,
+        A6: PinA6<Fmc>,
+        A7: PinA7<Fmc>,
+        A8: PinA8<Fmc>,
+        A9: PinA9<Fmc>,
+        A10: PinA10<Fmc>,
+        A11: PinA11<Fmc>, // only for 12/13 address bits
+        //    A12: PinA12<Fmc>, // only for 13 address bits
+        D0: PinD0<Fmc>,
+        D1: PinD1<Fmc>,
+        D2: PinD2<Fmc>,
+        D3: PinD3<Fmc>,
+        D4: PinD4<Fmc>,
+        D5: PinD5<Fmc>,
+        D6: PinD6<Fmc>,
+        D7: PinD7<Fmc>,
 
-    D8: PinD8<Fmc>,   // only for 16/32bit memory width
-    D9: PinD9<Fmc>,   // only for 16/32bit memory width
-    D10: PinD10<Fmc>, // only for 16/32bit memory width
-    D11: PinD11<Fmc>, // only for 16/32bit memory width
-    D12: PinD12<Fmc>, // only for 16/32bit memory width
-    D13: PinD13<Fmc>, // only for 16/32bit memory width
-    D14: PinD14<Fmc>, // only for 16/32bit memory width
-    D15: PinD15<Fmc>, // only for 16/32bit memory width
+        D8: PinD8<Fmc>,   // only for 16/32bit memory width
+        D9: PinD9<Fmc>,   // only for 16/32bit memory width
+        D10: PinD10<Fmc>, // only for 16/32bit memory width
+        D11: PinD11<Fmc>, // only for 16/32bit memory width
+        D12: PinD12<Fmc>, // only for 16/32bit memory width
+        D13: PinD13<Fmc>, // only for 16/32bit memory width
+        D14: PinD14<Fmc>, // only for 16/32bit memory width
+        D15: PinD15<Fmc>, // only for 16/32bit memory width
 
-                      //    D16: PinD16<Fmc>, // only for 32bit memory width
-                      //    D17: PinD17<Fmc>, // only for 32bit memory width
-                      //    D18: PinD18<Fmc>, // only for 32bit memory width
-                      //    D19: PinD19<Fmc>, // only for 32bit memory width
-                      //    D20: PinD20<Fmc>, // only for 32bit memory width
-                      //    D21: PinD21<Fmc>, // only for 32bit memory width
-                      //    D22: PinD22<Fmc>, // only for 32bit memory width
-                      //    D23: PinD23<Fmc>, // only for 32bit memory width
-                      //    D24: PinD24<Fmc>, // only for 32bit memory width
-                      //    D25: PinD25<Fmc>, // only for 32bit memory width
-                      //    D26: PinD26<Fmc>, // only for 32bit memory width
-                      //    D27: PinD27<Fmc>, // only for 32bit memory width
-                      //    D28: PinD28<Fmc>, // only for 32bit memory width
-                      //    D29: PinD29<Fmc>, // only for 32bit memory width
-                      //    D30: PinD30<Fmc>, // only for 32bit memory width
-                      //    D31: PinD31<Fmc>, // only for 32bit memory width
-{
+                          //    D16: PinD16<Fmc>, // only for 32bit memory width
+                          //    D17: PinD17<Fmc>, // only for 32bit memory width
+                          //    D18: PinD18<Fmc>, // only for 32bit memory width
+                          //    D19: PinD19<Fmc>, // only for 32bit memory width
+                          //    D20: PinD20<Fmc>, // only for 32bit memory width
+                          //    D21: PinD21<Fmc>, // only for 32bit memory width
+                          //    D22: PinD22<Fmc>, // only for 32bit memory width
+                          //    D23: PinD23<Fmc>, // only for 32bit memory width
+                          //    D24: PinD24<Fmc>, // only for 32bit memory width
+                          //    D25: PinD25<Fmc>, // only for 32bit memory width
+                          //    D26: PinD26<Fmc>, // only for 32bit memory width
+                          //    D27: PinD27<Fmc>, // only for 32bit memory width
+                          //    D28: PinD28<Fmc>, // only for 32bit memory width
+                          //    D29: PinD29<Fmc>, // only for 32bit memory width
+                          //    D30: PinD30<Fmc>, // only for 32bit memory width
+                          //    D31: PinD31<Fmc>, // only for 32bit memory width
+    {
+    }
 }
